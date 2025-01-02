@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodelintPR - Code Analysis Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2D3250;
+            --secondary-color: #424769;
+            --accent-color: #7077A1;
+            --light-color: #F6B17A;
+            --background-color: #f8f9fd;
+        }
+
+        body {
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            color: var(--light-color) !important;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .navbar-brand i {
+            margin-right: 10px;
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e1e5ee;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(112, 119, 161, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .issue-card {
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .issue-style { border-left: 4px solid #17a2b8; }
+        .issue-bugs { border-left: 4px solid #dc3545; }
+        .issue-performance { border-left: 4px solid #ffc107; }
+        .issue-best_practice { border-left: 4px solid #28a745; }
+
+        .file-section {
+            margin-bottom: 30px;
+            border: 1px solid #e1e5ee;
+            border-radius: 12px;
+            padding: 15px;
+            background: white;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .file-header {
+            background-color: var(--secondary-color);
+            padding: 15px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 12px 12px 0 0;
+            color: white;
+        }
+
+        .no-issues {
+            color: #6c757d;
+            font-style: italic;
+            padding: 15px;
+        }
+
+        .typing-animation {
+            overflow: hidden;
+            border-right: .15em solid orange;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: .15em;
+            animation: typing 3.5s steps(40, end),
+                       blink-caret .75s step-end infinite;
+        }
+
+        .animated-text {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--light-color) }
+        }
+
+        .badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .badge-style { background-color: #17a2b8; }
+        .badge-bugs { background-color: #dc3545; }
+        .badge-performance { background-color: #ffc107; color: black; }
+        .badge-best_practice { background-color: #28a745; }
+
+        .results-header {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--light-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-code"></i>CodelintPR
+            </span>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <form id="analysis-form">
+            <div class="mb-4">
+                <label for="repo_url" class="form-label">
+                    <i class="fas fa-link me-2"></i>Repository URL
+                </label>
+                <input type="text" id="repo_url" class="form-control" placeholder="Enter repository URL" required>
+            </div>
+            <div class="mb-4">
+                <label for="github_token" class="form-label">
+                    <i class="fas fa-key me-2"></i>GitHub Token
+                </label>
+                <input type="text" id="github_token" class="form-control" placeholder="Enter GitHub token" required>
+            </div>
+            <div class="mb-4">
+                <label for="pr_num" class="form-label">
+                    <i class="fas fa-code-pull-request me-2"></i>Pull Request Number
+                </label>
+                <input type="number" id="pr_num" class="form-control" placeholder="Enter PR number" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-search me-2"></i>Analyze Code
+            </button>
+        </form>
+
+        <div class="loading-spinner" id="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing your code... Please wait</p>
+        </div>
+
+        <div class="mt-5">
+            <h4 class="results-header typing-animation" id="results-title" style="display: none;">Analysis Results</h4>
+            <div id="result-output"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('analysis-form');
+        const resultOutput = document.getElementById('result-output');
+        const loadingSpinner = document.getElementById('loading');
+        const resultsTitle = document.getElementById('results-title');
+
+        function typeWriter(element, text, i = 0) {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                setTimeout(() => typeWriter(element, text, i + 1), 50);
+            }
+        }
+
+        function displayResults(data) {
+            const results = data.Result.results;
+            resultOutput.innerHTML = '';
+
+            resultsTitle.style.display = 'block';
+            resultsTitle.textContent = '';
+            typeWriter(resultsTitle, 'Analysis Results');
+
+            if (typeof results === 'string') {
+                // Display error message
+                const errorMessage = document.createElement('p');
+                errorMessage.className = 'text-danger text-center animated-text';
+                errorMessage.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${results}`;
+                resultOutput.appendChild(errorMessage);
+            } else {
+                // Handle issue results
+                results.forEach((result, fileIndex) => {
+                    const fileSection = document.createElement('div');
+                    fileSection.className = 'file-section';
+                    fileSection.style.animationDelay = `${fileIndex * 0.3}s`;
+
+                    fileSection.innerHTML = `
+                        <div class="file-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-code me-2"></i>${result.filename}
+                            </h5>
+                        </div>
+                    `;
+
+                    if (result.results.issues.length === 0) {
+                        const noIssues = document.createElement('p');
+                        noIssues.className = 'no-issues animated-text';
+                        noIssues.innerHTML = '<i class="fas fa-check-circle me-2"></i>No issues found in this file.';
+                        fileSection.appendChild(noIssues);
+                    } else {
+                        result.results.issues.forEach((issue, issueIndex) => {
+                            const card = document.createElement('div');
+                            card.className = `card issue-card issue-${issue.type}`;
+                            card.style.animationDelay = `${issueIndex * 0.2}s`;
+
+                            card.innerHTML = `
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <span class="badge badge-${issue.type} text-white">${issue.type.toUpperCase()}</span>
+                                        <span class="text-muted">Line ${issue.line}</span>
+                                    </div>
+                                    <p class="card-text animated-text">${issue.description}</p>
+                                    <p class="card-text animated-text">
+                                        <strong><i class="fas fa-lightbulb me-2"></i>Suggestion:</strong> ${issue.suggestion}
+                                    </p>
+                                </div>
+                            `;
+                            fileSection.appendChild(card);
+                        });
+                    }
+
+                    resultOutput.appendChild(fileSection);
+                });
+            }
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const repoUrl = document.getElementById('repo_url').value;
+            const githubToken = document.getElementById('github_token').value;
+            const prNum = document.getElementById('pr_num').value;
+
+            loadingSpinner.style.display = 'block';
+            resultOutput.innerHTML = '';
+            resultsTitle.style.display = 'none';
+
+            try {
+                const postResponse = await fetch("http://127.0.0.1:8000/start-task/", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        repo_url: repoUrl,
+                        pr_num: prNum,
+                        github_token: githubToken,
+                    }),
+                });
+
+                const postData = await postResponse.json();
+
+                if (postData.status === "Task Started") {
+                    const taskId = postData.task_id;
+                    let status = "PENDING";
+
+                    while (status !== "SUCCESS") {
+                        const getResponse = await fetch(`http://127.0.0.1:8000/task-status/${taskId}/`);
+                        const getResponseData = await getResponse.json();
+                        status = getResponseData.status;
+
+                        if (status === "SUCCESS") {
+                            displayResults(getResponseData);
+                        } else {
+                            await new Promise((resolve) => setTimeout(resolve, 2000));
+                        }
+                    }
+                } else {
+                    resultOutput.innerHTML = '<div class="alert alert-danger">Error: Task did not start successfully.</div>';
+                }
+            } catch (error) {
+                resultOutput.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
