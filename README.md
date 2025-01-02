@@ -25,7 +25,7 @@ CodeLintPR is a Django-based microservice that performs automated code analysis 
 1. Clone the repository:
 ```bash
 git clone https://github.com/sathwikshetty33/codeLintPR.git
-cd codeLintPR
+cd django_app
 ```
 
 2. Create and activate a virtual environment:
