@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "your api key"
 
 
 def file_content_with_llm(filecontent, filename):
