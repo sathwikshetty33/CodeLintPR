@@ -304,55 +304,85 @@
         }
 
         form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+    event.preventDefault();
 
-            const repoUrl = document.getElementById('repo_url').value;
-            const githubToken = document.getElementById('github_token').value;
-            const prNum = document.getElementById('pr_num').value;
+    const repoUrl = document.getElementById('repo_url').value;
+    const githubToken = document.getElementById('github_token').value;
+    const prNum = document.getElementById('pr_num').value;
 
-            loadingSpinner.style.display = 'block';
-            resultOutput.innerHTML = '';
-            resultsTitle.style.display = 'none';
+    // Get the authentication token from session storage
+    const authToken = sessionStorage.getItem('authToken');
 
-            try {
-                const postResponse = await fetch("http://127.0.0.1:8000/start-task/", {
-                    method: 'POST',
+    // If no auth token is found, redirect to login page
+    if (!authToken) {
+        window.location.href = '/login/';
+        return;
+    }
+
+    loadingSpinner.style.display = 'block';
+    resultOutput.innerHTML = '';
+    resultsTitle.style.display = 'none';
+
+    try {
+        const postResponse = await fetch("http://127.0.0.1:8000/start-task/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `token ${authToken}` // Add the auth token
+            },
+            body: JSON.stringify({
+                repo_url: repoUrl,
+                pr_num: prNum,
+                github_token: githubToken,
+            }),
+        });
+
+        const postData = await postResponse.json();
+
+        if (postData.status === "Task Started") {
+            const taskId = postData.task_id;
+            let status = "PENDING";
+
+            while (status !== "SUCCESS") {
+                const getResponse = await fetch(`http://127.0.0.1:8000/task-status/${taskId}/`, {
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        repo_url: repoUrl,
-                        pr_num: prNum,
-                        github_token: githubToken,
-                    }),
+                        'Authorization': `token ${authToken}` // Add the auth token
+                    }
                 });
 
-                const postData = await postResponse.json();
-
-                if (postData.status === "Task Started") {
-                    const taskId = postData.task_id;
-                    let status = "PENDING";
-
-                    while (status !== "SUCCESS") {
-                        const getResponse = await fetch(`http://127.0.0.1:8000/task-status/${taskId}/`);
-                        const getResponseData = await getResponse.json();
-                        status = getResponseData.status;
-
-                        if (status === "SUCCESS") {
-                            displayResults(getResponseData);
-                        } else {
-                            await new Promise((resolve) => setTimeout(resolve, 2000));
-                        }
-                    }
-                } else {
-                    resultOutput.innerHTML = '<div class="alert alert-danger">Error: Task did not start successfully.</div>';
+                // Check if response is 401 (Unauthorized)
+                if (getResponse.status === 401) {
+                    // Redirect to login page if token is invalid or expired
+                    window.location.href = '/login/';
+                    return;
                 }
-            } catch (error) {
-                resultOutput.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-            } finally {
-                loadingSpinner.style.display = 'none';
+
+                const getResponseData = await getResponse.json();
+                status = getResponseData.status;
+
+                if (status === "SUCCESS") {
+                    displayResults(getResponseData);
+                } else {
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                }
             }
-        });
+        } else {
+            resultOutput.innerHTML = '<div class="alert alert-danger">Error: Task did not start successfully.</div>';
+        }
+    } catch (error) {
+        resultOutput.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    } finally {
+        loadingSpinner.style.display = 'none';
+    }
+});
+
+// Add a function to check authentication status when page loads
+window.addEventListener('load', () => {
+    const authToken = sessionStorage.getItem('authToken');
+    if (!authToken) {
+        window.location.href = '/login/';
+    }
+});
     </script>
 </body>
 </html>

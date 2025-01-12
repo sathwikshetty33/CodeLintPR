@@ -19,11 +19,14 @@ from tkinter.font import names
 from django.contrib import admin
 from django.urls import path
 from . import views
-from home.views import start_task, status_task  # Importing specific views
+from home.views import start_task, status_task, loginapi, registerapi  # Importing specific views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('start-task/', start_task, name='start_task'),  # Removed 'views.' and added trailing slash
     path('task-status/<str:task_id>/', status_task, name='task_status'),  # Defined task_id as a string
-    path('',views.homes,name='home'),
+    path('home/',views.homes,name='home'),
+    path('',views.loginpage,name='loginpage'),
+    path('login/',loginapi.as_view() ,name='login'),
+    path('register/',registerapi.as_view() ,name='register')
 ]
