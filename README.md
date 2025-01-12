@@ -10,6 +10,7 @@ CodeLintPR is a Django-based microservice that performs automated code analysis 
 - AI-powered code analysis using Groq API
 - RESTful API endpoints for task management
 - Comprehensive code analysis including style, bugs, performance, and best practices
+- Authentication system using DRF's token-based authentication
 
 ## Prerequisites
 
@@ -57,7 +58,45 @@ python manage.py runserver
 
 ## API Endpoints
 
-### 1. Start Analysis Task
+### 1. login
+
+**Endpoint:** `POST http://127.0.0.1:8000/login/`
+
+**Request Body:**
+```json
+{
+    "username": "your_username",
+    "password":"user_ps"
+}
+```
+
+**Response:**
+```json
+{
+    "token": "beafd941-5513-42d9-a13c-46983f97ff24",
+}
+```
+### 2. Register
+
+**Endpoint:** `POST http://127.0.0.1:8000/register/`
+
+**Request Body:**
+```json
+{
+     "username": "your_username",
+    "password":"user_ps"
+}
+```
+
+**Response:**
+```json
+{
+
+    "status": "Success"
+}
+```
+
+### 3. Start Analysis Task
 
 **Endpoint:** `POST http://127.0.0.1:8000/start-task/`
 
@@ -78,7 +117,8 @@ python manage.py runserver
 }
 ```
 
-### 2. Check Task Status
+
+### 4. Check Task Status
 
 **Endpoint:** `GET http://127.0.0.1:8000/task-status/<task_id>/`
 
