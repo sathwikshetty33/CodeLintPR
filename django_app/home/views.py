@@ -1,6 +1,7 @@
 import http
 
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
 from django.contrib.auth import authenticate, user_logged_in
@@ -36,23 +37,38 @@ def status_task(request,task_id):
                      "Result": result.result
                      })
 
+@csrf_exempt
 class loginapi(APIView):
     def post(self, request):
-        data = request.data
-        serializer=loginSearializer(data=data)
-        if not serializer.is_valid():
-            return Response({"some error":serializer.errors})
-        username = serializer.data['username']
-        password = serializer.data['password']
-        us = authenticate(username=username,password=password)
-        if us is None:
-            return  Response({
-                "error" : "Invalid username and password"
+        try:
+            print('req called')
+            data = request.data
+            serializer = loginSearializer(data=data)
+            if not serializer.is_valid():
+                print(f"Serializer errors: {serializer.errors}")
+                return Response({"some error": serializer.errors})
+
+            username = serializer.data['username']
+            password = serializer.data['password']
+            print(f"Attempting login for user: {username}")
+
+            us = authenticate(username=username, password=password)
+            if us is None:
+                print(f"Authentication failed for user: {username}")
+                return Response({
+                    "error": "Invalid username and password"
+                })
+
+            token, _ = Token.objects.get_or_create(user=us)
+            print(f"Login successful for user: {username}")
+            return Response({
+                "token": token.key
             })
-        token,_ = Token.objects.get_or_create(user=us)
-        return Response({
-            "token" : token.key
-        })
+        except Exception as e:
+            print(f"Exception in login API: {str(e)}")
+            return Response({
+                "error": f"Server error: {str(e)}"
+            }, status=500)
 
 class registerapi(APIView):
     def post(self, request):

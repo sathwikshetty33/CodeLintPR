@@ -30,7 +30,7 @@ CELERY_BROKER_URL = "redis://127.0.0.1:6380"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6380"
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SELERLIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_EXPIRES = 60 * 60 * 24
 broker_connection_retry_on_startup = True
 # Application definition
