@@ -11,152 +11,84 @@ CodeLintPR is a Django-based microservice that performs automated code analysis 
 - RESTful API endpoints for task management
 - Comprehensive code analysis including style, bugs, performance, and best practices
 - Authentication system using DRF's token-based authentication
+- Docker containerization for easy deployment
 
 ## Prerequisites
 
-- Python 3.9+
-- Redis Server
-- Django 4.x
-- Celery
+- Docker
+- Docker Compose
 - GitHub Account and Personal Access Token
 - Groq API Key
 
-## Installation
+## Docker Deployment
 
-1. Clone the repository:
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/sathwikshetty33/codeLintPR.git
-cd django_app
+cd codeLintPR
 ```
 
-2. Create and activate a virtual environment:
+### 2. Environment Configuration
+
+Create a `.env` file in the project root with the following variables:
+```
+GITHUB_TOKEN=your_github_token
+GROQ_API_KEY=your_groq_api_key
+DJANGO_SECRET_KEY=your_django_secret_key
+DEBUG=False
+ALLOWED_HOSTS=*
+```
+
+### 3. Build and Run with Docker Compose
+
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+docker-compose up --build
 ```
 
-3. Install dependencies:
+### 4. Accessing the Application
+
+- Web Application: `http://localhost:8000`
+- Celery Worker: Running in the same container
+- Redis: Available at `redis://localhost:6380`
+
+### Docker Compose Configuration
+
+The `docker-compose.yml` file defines two services:
+
+1. **Web Service (`codelintpr_app`)**:
+   - Builds the Django application
+   - Runs Django development server
+   - Starts Celery worker
+   - Exposes port 8000
+
+2. **Redis Service (`codelintpr_redis`)**:
+   - Uses latest Redis image
+   - Runs on port 6380
+   - Serves as message broker and result backend for Celery
+
+### Docker Image Management
+
+#### Build the Image
 ```bash
-pip install -r requirements.txt
+docker-compose up sathwikshetty50/codelintpr .
 ```
+#### Find Image at sathwikshetty50/codelintpr
+
+### Additional Docker Commands
+
+- Stop containers: `docker-compose down`
+- View running containers: `docker ps`
+- View logs: `docker-compose logs web`
+- Access Django shell: `docker-compose exec web python manage.py shell`
 
 
-4. Start Redis server:
-```bash
-redis-server --port 6380
-```
+## Troubleshooting
 
-5. Start Celery worker:
-```bash
-celery -A django_app worker --loglevel=info -P eventlet
-```
-
-6. Run Django development server:
-```bash
-python manage.py runserver
-```
-
-## API Endpoints
-
-### 1. login
-
-**Endpoint:** `POST http://127.0.0.1:8000/login/`
-
-**Request Body:**
-```json
-{
-    "username": "your_username",
-    "password":"user_ps"
-}
-```
-
-**Response:**
-```json
-{
-    "token": "beafd941-5513-42d9-a13c-46983f97ff24",
-}
-```
-### 2. Register
-
-**Endpoint:** `POST http://127.0.0.1:8000/register/`
-
-**Request Body:**
-```json
-{
-     "username": "your_username",
-    "password":"user_ps"
-}
-```
-
-**Response:**
-```json
-{
-
-    "status": "Success"
-}
-```
-
-### 3. Start Analysis Task
-
-**Endpoint:** `POST http://127.0.0.1:8000/start-task/`
-
-**Request Body:**
-```json
-{
-    "repo_url": "https://github.com/username/repo",
-    "pr_num": 123,
-    "github_token": "your_github_token"
-}
-```
-
-**Response:**
-```json
-{
-    "task_id": "beafd941-5513-42d9-a13c-46983f97ff24",
-    "status": "Task Started"
-}
-```
-
-
-### 4. Check Task Status
-
-**Endpoint:** `GET http://127.0.0.1:8000/task-status/<task_id>/`
-
-**Response:**
-```json
-{
-    "task_id": "beafd941-5513-42d9-a13c-46983f97ff24",
-    "status": "SUCCESS",
-    "Result": {
-        "task_id": "b3b33e40-795c-4806-bcb4-9d8230949b1c",
-        "results": [
-            {
-                "results": {
-                    "issues": [
-                        {
-                            "type": "style",
-                            "line": "1",
-                            "description": "Issue description",
-                            "suggestion": "Suggested fix"
-                        }
-                    ]
-                },
-                "filename": "path/to/file"
-            }
-        ]
-    }
-}
-```
-
-
-
-## Issue Types
-
-The service identifies and reports various types of issues:
-- Style: Code formatting and style conventions
-- Bugs: Potential bugs and logic errors
-- Performance: Performance optimization suggestions
-- Best Practices: Coding best practices and standards
+- Ensure all environment variables are set
+- Check Docker and Docker Compose versions
+- Verify network ports are not in use
+- Check container logs for specific errors
 
 ## Contributing
 
@@ -179,6 +111,6 @@ For support, please open an issue in the GitHub repository or contact the mainta
 - Django Rest Framework
 - Celery
 - Redis
+- Docker
 - GitHub API
 - Groq API
-
