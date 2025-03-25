@@ -1,5 +1,6 @@
 import http
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAuthenticated
@@ -37,38 +38,59 @@ def status_task(request,task_id):
                      "Result": result.result
                      })
 
-@csrf_exempt
-class loginapi(APIView):
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from rest_framework import status
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LoginAPI(APIView):
+    authentication_classes = []  # Explicitly allow unauthenticated access
+    permission_classes = []  # No permission checks for login
+
     def post(self, request):
         try:
-            print('req called')
-            data = request.data
-            serializer = loginSearializer(data=data)
-            if not serializer.is_valid():
-                print(f"Serializer errors: {serializer.errors}")
-                return Response({"some error": serializer.errors})
+            # Print debugging information
+            print('Login request received')
 
-            username = serializer.data['username']
-            password = serializer.data['password']
-            print(f"Attempting login for user: {username}")
+            # Use request.data directly for DRF
+            username = request.data.get('username')
+            password = request.data.get('password')
 
-            us = authenticate(username=username, password=password)
-            if us is None:
+            # Validate input
+            if not username or not password:
+                return Response({
+                    "error": "Username and password are required"
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Authenticate user
+            user = authenticate(username=username, password=password)
+
+            if user is None:
                 print(f"Authentication failed for user: {username}")
                 return Response({
-                    "error": "Invalid username and password"
-                })
+                    "error": "Invalid username or password"
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
-            token, _ = Token.objects.get_or_create(user=us)
+            # Create or get existing token
+            token, created = Token.objects.get_or_create(user=user)
+
             print(f"Login successful for user: {username}")
             return Response({
-                "token": token.key
-            })
+                "token": token.key,
+                "user_id": user.id,
+                "username": user.username
+            }, status=status.HTTP_200_OK)
+
         except Exception as e:
             print(f"Exception in login API: {str(e)}")
             return Response({
                 "error": f"Server error: {str(e)}"
-            }, status=500)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class registerapi(APIView):
     def post(self, request):
