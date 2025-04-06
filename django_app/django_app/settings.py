@@ -56,13 +56,9 @@ REST_FRAMEWORK = {
     ]
 }
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = False  # Disable this when using specific origins
+CORS_ALLOW_ALL_ORIGINS = True  # Disable this when using specific origins
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",  # Add any other frontend origins you use
-]
+
 
 CORS_ALLOW_METHODS = [
     'DELETE',
