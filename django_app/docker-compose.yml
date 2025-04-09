@@ -3,7 +3,7 @@ services:
   web:
     build: .
     container_name: codelintpr_app
-    image: codelintpr
+    image: sathwikshetty50/codelintpr:latest
     ports:
       - "8000:8000"
     depends_on:
