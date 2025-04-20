@@ -114,5 +114,4 @@ For support, please open an issue in the GitHub repository or contact the mainta
 - Docker
 - GitHub API
 - Groq API
-- Docker-compose
 
