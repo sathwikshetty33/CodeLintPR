@@ -112,6 +112,7 @@ For support, please open an issue in the GitHub repository or contact the mainta
 - Celery
 - Redis
 - Docker
+- docker-compose
 - GitHub API
 - Groq API
 - docker-compose
