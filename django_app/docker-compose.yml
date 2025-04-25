@@ -2,6 +2,8 @@ version: '3'
 services:
   web:
     build: .
+    volumes:
+      - .:/app
     container_name: codelintpr_app
     image: sathwikshetty50/codelintpr:latest
     ports:
