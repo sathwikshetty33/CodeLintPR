@@ -21,6 +21,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from home.tasks import analyizer
+import json
+import logging
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
@@ -30,42 +35,35 @@ def start_task(request):
     logger.debug("Headers: %s", request.headers)
     logger.debug("Raw Body: %s", request.body)
 
-    # Check Content-Type header
-    content_type = request.headers.get('Content-Type')
-    logger.debug("Content-Type Header: %s", content_type)
+    if not request.body:
+        logger.error("Request body is empty")
+        return Response({"error": "Request body is empty"}, status=400)
 
-    # Attempt to parse request.data
-    data = request.data
-    logger.debug("Parsed Data (request.data): %s", data)
+    content_length = request.headers.get('Content-Length')
+    logger.debug("Content-Length Header: %s", content_length)
 
-    # Fallback to manual JSON parsing if request.data is empty
-    if not data:
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-            logger.debug("Manually Parsed Body: %s", data)
-        except json.JSONDecodeError as e:
-            logger.error("JSON Decode Error: %s", e)
-            return Response({"error": "Invalid JSON"}, status=400)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        logger.debug("Parsed Data: %s", data)
+    except json.JSONDecodeError as e:
+        logger.error("JSON Decode Error: %s", e)
+        return Response({"error": "Invalid JSON"}, status=400)
 
-    # Extract parameters
     repo_url = data.get('repo_url')
     pr_num = data.get('pr_num')
     github_token = data.get('github_token')
-    logger.debug("repo_url: %s", repo_url)
-    logger.debug("pr_num: %s", pr_num)
-    logger.debug("github_token: %s", github_token)
 
-    # Validate parameters
     if not repo_url or not pr_num or not github_token:
         logger.error("Missing required parameters")
         return Response({"error": "Missing required parameters"}, status=400)
 
-    # Start the task
     task = analyizer.delay(repo_url, pr_num, github_token)
     return Response({
         "task_id": task.id,
         "status": "Task Started",
     })
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def status_task(request,task_id):
