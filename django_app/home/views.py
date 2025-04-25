@@ -15,8 +15,10 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from .serializer import loginSearializer
 from .tasks import analyizer
-
-
+import os
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def start_task(request):
@@ -25,9 +27,9 @@ def start_task(request):
     pr_num = data.get('pr_num')
     github_token = data.get('github_token')
     task = analyizer.delay(repo_url, pr_num, github_token)
-    print(repo_url)
-    print(pr_num)
-    print(github_token)
+    logger.debug(repo_url)
+    logger.debug(pr_num)
+    logger.debug(github_token)
     return Response({"task_id": task.id,
                      "status" : "Task Started",
 
