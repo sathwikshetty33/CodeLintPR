@@ -25,6 +25,9 @@ def start_task(request):
     pr_num = data.get('pr_num')
     github_token = data.get('github_token')
     task = analyizer.delay(repo_url, pr_num, github_token)
+    print(repo_url)
+    print(pr_num)
+    print(github_token)
     return Response({"task_id": task.id,
                      "status" : "Task Started",
 
