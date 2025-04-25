@@ -22,14 +22,16 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def start_task(request):
+    logger.debug("Headers: %s", request.headers)
+    logger.debug("Body: %s", request.body)
     data = request.data
     repo_url = data.get('repo_url')
     pr_num = data.get('pr_num')
     github_token = data.get('github_token')
+    logger.debug("repo_url: %s", repo_url)
+    logger.debug("pr_num: %s", pr_num)
+    logger.debug("github_token: %s", github_token)
     task = analyizer.delay(repo_url, pr_num, github_token)
-    logger.debug(repo_url)
-    logger.debug(pr_num)
-    logger.debug(github_token)
     return Response({"task_id": task.id,
                      "status" : "Task Started",
 
