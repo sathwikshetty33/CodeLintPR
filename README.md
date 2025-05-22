@@ -484,9 +484,6 @@ redis-cli -h localhost -p 6379 ping
 # View container logs
 docker logs codelint
 
-# Test API endpoint
-curl -X GET http://localhost:8000/health/
-
 # Check Celery worker status
 celery -A django_app inspect active
 ```
