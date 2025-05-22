@@ -6,3 +6,5 @@ def homes(request):
 
 def loginpage(request):
     return render(request,'login.html')
+def api(request):
+    return render(request,'api.html')

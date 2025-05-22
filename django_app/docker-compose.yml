@@ -3,7 +3,7 @@ services:
   web:
     build: .
     container_name: codelintpr_app
-    image: codelintpr
+    image: sathwikshetty50/codelintpr
     ports:
       - "8000:8000"
     depends_on:
@@ -17,6 +17,9 @@ services:
       sh -c "python manage.py runserver 0.0.0.0:8000 & 
              celery -A django_app worker --loglevel=info -P eventlet"
     restart: unless-stopped
+    networks:
+      - app-network
+
   redis:
     image: redis:latest
     container_name: codelintpr_redis
@@ -24,3 +27,9 @@ services:
     ports:
       - "6380:6380"
     command: redis-server --port 6380
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

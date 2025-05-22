@@ -99,6 +99,7 @@
         .issue-bugs { border-left: 4px solid #dc3545; }
         .issue-performance { border-left: 4px solid #ffc107; }
         .issue-best_practice { border-left: 4px solid #28a745; }
+        .issue-security { border-left: 4px solid #9c27b0; }
 
         .file-section {
             margin-bottom: 30px;
@@ -168,6 +169,7 @@
         .badge-bugs { background-color: #dc3545; }
         .badge-performance { background-color: #ffc107; color: black; }
         .badge-best_practice { background-color: #28a745; }
+        .badge-security { background-color: #9c27b0; }
 
         .results-header {
             color: var(--primary-color);
@@ -188,6 +190,13 @@
             <span class="navbar-brand">
                 <i class="fas fa-code"></i>CodelintPR
             </span>
+        </div>
+        <div class="container">
+            <a href="{% url 'api' %}">
+            <span class="navbar-brand">
+                <i class="fas fa-code"></i>API
+            </span>
+                </a>
         </div>
     </nav>
 
@@ -304,85 +313,96 @@
         }
 
         form.addEventListener('submit', async (event) => {
-    event.preventDefault();
+            event.preventDefault();
 
-    const repoUrl = document.getElementById('repo_url').value;
-    const githubToken = document.getElementById('github_token').value;
-    const prNum = document.getElementById('pr_num').value;
+            const repoUrl = document.getElementById('repo_url').value;
+            const githubToken = document.getElementById('github_token').value;
+            const prNum = document.getElementById('pr_num').value;
 
-    // Get the authentication token from session storage
-    const authToken = sessionStorage.getItem('authToken');
+            // Get the authentication token from session storage
+            const authToken = sessionStorage.getItem('authToken');
 
-    // If no auth token is found, redirect to login page
-    if (!authToken) {
-        window.location.href = '/login/';
-        return;
-    }
+            // If no auth token is found, redirect to login page
+            if (!authToken) {
+                window.location.href = '/login/';
+                return;
+            }
 
-    loadingSpinner.style.display = 'block';
-    resultOutput.innerHTML = '';
-    resultsTitle.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            resultOutput.innerHTML = '';
+            resultsTitle.style.display = 'none';
 
-    try {
-        const postResponse = await fetch("http://127.0.0.1:8000/start-task/", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `token ${authToken}` // Add the auth token
-            },
-            body: JSON.stringify({
-                repo_url: repoUrl,
-                pr_num: prNum,
-                github_token: githubToken,
-            }),
-        });
-
-        const postData = await postResponse.json();
-
-        if (postData.status === "Task Started") {
-            const taskId = postData.task_id;
-            let status = "PENDING";
-
-            while (status !== "SUCCESS") {
-                const getResponse = await fetch(`http://127.0.0.1:8000/task-status/${taskId}/`, {
+            try {
+                const postResponse = await fetch("http://127.0.0.1:8000/start-task/", {
+                    method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': `token ${authToken}` // Add the auth token
-                    }
+                    },
+                    body: JSON.stringify({
+                        repo_url: repoUrl,
+                        pr_num: prNum,
+                        github_token: githubToken,
+                    }),
                 });
 
                 // Check if response is 401 (Unauthorized)
-                if (getResponse.status === 401) {
+                if (postResponse.status === 401) {
                     // Redirect to login page if token is invalid or expired
                     window.location.href = '/login/';
                     return;
                 }
 
-                const getResponseData = await getResponse.json();
-                status = getResponseData.status;
+                const postData = await postResponse.json();
 
-                if (status === "SUCCESS") {
-                    displayResults(getResponseData);
+                if (postData.status === "Task Started") {
+                    const taskId = postData.task_id;
+                    let status = "PENDING";
+
+                    while (status !== "SUCCESS") {
+                        const getResponse = await fetch(`http://127.0.0.1:8000/task-status/${taskId}/`, {
+                            headers: {
+                                'Authorization': `token ${authToken}` // Add the auth token
+                            }
+                        });
+
+                        // Check if response is 401 (Unauthorized)
+                        if (getResponse.status === 401) {
+                            // Redirect to login page if token is invalid or expired
+                            window.location.href = '/login/';
+                            return;
+                        }
+
+                        const getResponseData = await getResponse.json();
+                        status = getResponseData.status;
+
+                        if (status === "SUCCESS") {
+                            displayResults(getResponseData);
+                        } else if (status === "FAILURE") {
+                            resultOutput.innerHTML = '<div class="alert alert-danger">Error: Task failed. Please try again.</div>';
+                            loadingSpinner.style.display = 'none';
+                            break;
+                        } else {
+                            await new Promise((resolve) => setTimeout(resolve, 2000));
+                        }
+                    }
                 } else {
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    resultOutput.innerHTML = '<div class="alert alert-danger">Error: Task did not start successfully.</div>';
                 }
+            } catch (error) {
+                resultOutput.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            } finally {
+                loadingSpinner.style.display = 'none';
             }
-        } else {
-            resultOutput.innerHTML = '<div class="alert alert-danger">Error: Task did not start successfully.</div>';
-        }
-    } catch (error) {
-        resultOutput.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-    } finally {
-        loadingSpinner.style.display = 'none';
-    }
-});
+        });
 
-// Add a function to check authentication status when page loads
-window.addEventListener('load', () => {
-    const authToken = sessionStorage.getItem('authToken');
-    if (!authToken) {
-        window.location.href = '/login/';
-    }
-});
+        // Add a function to check authentication status when page loads
+        window.addEventListener('load', () => {
+            const authToken = sessionStorage.getItem('authToken');
+            if (!authToken) {
+                window.location.href = '/login/';
+            }
+        });
     </script>
 </body>
 </html>

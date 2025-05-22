@@ -28,5 +28,7 @@ urlpatterns = [
     path('home/',views.homes,name='home'),
     path('',views.loginpage,name='loginpage'),
     path('login/',LoginAPI.as_view() ,name='login'),
-    path('register/',registerapi.as_view() ,name='register')
+    path('register/',registerapi.as_view() ,name='register'),
+    path('api/',views.api,name='api'),
+    path('github-actions-analyze-pr/', github_actions_analyze_pr, name='github-actions-analyze-pr'),
 ]
