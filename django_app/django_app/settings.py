@@ -11,7 +11,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-i&=c&7lc81pl@o-oi$=#@isu%_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
 
 # Celery Configuration
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6380")
