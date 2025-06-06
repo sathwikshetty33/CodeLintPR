@@ -505,5 +505,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ⚡ **Redis** - For fast caching and message brokering
 
 ---
-
+<div align="center">Add commentMore actions
+  <p>Made with ❤️ for the developer community</p>
+  <p>
+    <a href="https://github.com/sathwikshetty33/codeLintPR/issues">🐛 Report Bug</a> ·
+    <a href="https://github.com/sathwikshetty33/codeLintPR/issues">💡 Request Feature</a> ·
+    <a href="https://github.com/sathwikshetty33/codeLintPR">⭐ Star this Project</a>
+  </p>
+</div>
 
