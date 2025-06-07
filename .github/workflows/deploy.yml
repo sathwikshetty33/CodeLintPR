@@ -16,7 +16,7 @@ jobs:
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: 13.90.157.207
+        host: 40.88.9.12
         username: azureuser
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
