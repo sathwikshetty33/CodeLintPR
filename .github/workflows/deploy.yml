@@ -16,7 +16,7 @@ jobs:
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: 40.88.9.12
+        host: 172.174.91.43
         username: azureuser
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
@@ -42,8 +42,8 @@ jobs:
           fi
           
           # Set environment variables from GitHub secrets
-          export ALLOWED_HOSTS="$ALLOWED_HOSTS"
           export DEBUG="$DEBUG"
+          export ALLOWED_HOSTS="$ALLOWED_HOSTS"
 
           
           # Find Django project directory
@@ -71,6 +71,6 @@ jobs:
           
           echo "Auto-deployment completed!"
       env:
-        ALLOWED_HOSTS: ${{ secrets.ENV_ALLOWED_HOSTS }}
         DEBUG: ${{ secrets.ENV_DEBUG }}
+        ALLOWED_HOSTS: ${{ secrets.ENV_ALLOWED_HOSTS }}
 
