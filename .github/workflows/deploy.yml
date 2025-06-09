@@ -16,7 +16,7 @@ jobs:
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: 20.185.222.205
+        host: 20.39.60.118
         username: azureuser
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
@@ -70,5 +70,3 @@ jobs:
           sudo supervisorctl status django-server
           
           echo "Auto-deployment completed!"
-      env:
-
